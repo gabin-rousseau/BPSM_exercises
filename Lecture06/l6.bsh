@@ -1,0 +1,51 @@
+#!/usr/bin/bash
+
+#1
+cat blastoutput2.out | cut -f2 > subject_accession.out
+echo -e "#Subject Accession List\n$(cat subject_accession.out)" > subject_accession.out
+
+#2
+cat blastoutput2.out | cut -f3,4 > id_alignment.out
+echo -e "#%ID\tAlignment length\n$(cat id_alignment.out)" > id_alignment.out
+
+#3
+touch up20mis.out
+echo "#Show HSP with more than 20 mismatches" >> up20mis.out
+while IFS=$'\t' read line
+do
+        F_mis=$(cut -f5 -s <<< "$line")
+
+        if [[ "$F_mis" > 20 ]]; then
+                echo "$line" >> up20mis.out
+        fi
+
+done < blastoutput2.out
+
+#4
+touch dwn100len_up20mis.out
+echo "#Show HSP shorter than 100 aa with more than 20 mismatches" >> dwn100len_up20mis.out
+while IFS=$'\t' read line
+do
+	F_len=$(cut -f4 -s <<< "$line")
+        F_mis=$(cut -f5 -s <<< "$line")
+
+        if [[ "$F_len" < 100]] && [[ "$F_mis" > 20 ]]; then
+                echo "$line" >> dwn100len_up20mis.out
+        fi
+
+done < blastoutput2.out
+
+#5 (incomplete)
+touch first20_dwn20mis.out
+echo "#Show first 20 HSP with less than 20 mismatches" >> first20_dwn20mis.out
+COUNTER=0
+while IFS=$'\t' read line
+do
+        F_mis=$(cut -f5 -s <<< "$line")
+
+        if [[ "$F_mis" > 20 ]]; then
+		((COUNTER++))
+                echo "$line" >> first20_dwn20mis.out
+        fi
+
+done < blastoutput2.out
