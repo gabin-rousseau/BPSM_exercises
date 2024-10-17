@@ -1,0 +1,86 @@
+#!/bin/bash
+
+rm pipeline_qc.sum
+
+touch pipeline_qc.sum
+
+samplefile="${HOME}/Exercises/Pipeline/samples/Tco2.fqfiles"
+#fastaq format : ${HOME}/Exercises/Pipeline/QC/${sample}_1/2_fastqc/fastqc_data.txt OR summary.txt
+
+while IFS=$'\t' read line
+do
+	F_1=$(cut -f1 -s <<< "$line")
+	if [[ "$F_1" == "SampleName" ]]; then
+                echo -e "${F_1}\tTotalSequences\tSequenceLength\tBasicStats\tPerBaseQuality\tPerSeqQualityScore" >> pipeline_qc.sum
+	elif [[ "$F_1" == "Tco"* ]]; then
+		sample1="${F_1:0:3}-${F_1:3}_1"
+		sample2="${F_1:0:3}-${F_1:3}_2"
+		total1=""
+		total2=""
+		length1=""
+		length2=""
+		basic1=""
+		basic2=""
+		baseQ1=""
+		baseQ2=""
+		seqQ1=""
+		seqQ2=""
+		while IFS=$'\t' read line
+		do
+			F_1b=$(cut -f1 -s <<< "$line")
+			F_2b=$(cut -f2 -s <<< "$line")
+
+			if [[ "$F_1b" == "Total Sequences" ]]; then
+				total1=${F_2b}
+			elif [[ "$F_1b" == "Sequence length" ]]; then
+				length1=${F_2b}
+				break
+			fi
+		done < ${HOME}/Exercises/Pipeline/QC/${sample1}_fastqc/fastqc_data.txt
+
+		while IFS=$'\t' read line
+		do
+                        F_1b=$(cut -f1 -s <<< "$line")
+                        F_2b=$(cut -f2 -s <<< "$line")
+
+                        if [[ "$F_2b" == "Basic Statistics" ]]; then
+                                basic1=${F_1b}
+                        elif [[ "$F_2b" == "Per base sequence quality" ]]; then
+                                baseQ1=${F_1b}
+			elif [[ "$F_2b" == "Per sequence quality scores" ]]; then
+                                seqQ1=${F_1b}
+				break
+                        fi
+                done < ${HOME}/Exercises/Pipeline/QC/${sample1}_fastqc/summary.txt
+
+		while IFS=$'\t' read line
+		do
+                        F_1b=$(cut -f1 -s <<< "$line")
+                        F_2b=$(cut -f2 -s <<< "$line")
+
+                        if [[ "$F_1b" == "Total Sequences" ]]; then
+                                total2=${F_2b}
+                        elif [[ "$F_1b" == "Sequence length" ]]; then
+                                length2=${F_2b}
+                                break
+                        fi
+                done < ${HOME}/Exercises/Pipeline/QC/${sample2}_fastqc/fastqc_data.txt
+
+                while IFS=$'\t' read line
+		do
+                        F_1b=$(cut -f1 -s <<< "$line")
+                        F_2b=$(cut -f2 -s <<< "$line")
+
+                        if [[ "$F_2b" == "Basic Statistics" ]]; then
+                                basic2=${F_1b}
+                        elif [[ "$F_2b" == "Per base sequence quality" ]]; then
+                                baseQ2=${F_1b}
+                        elif [[ "$F_2b" == "Per sequence quality scores" ]]; then
+                                seqQ2=${F_1b}
+                                break
+                        fi
+                done < ${HOME}/Exercises/Pipeline/QC/${sample2}_fastqc/summary.txt
+		echo -e "${sample1}\t${total1}\t${length1}\t${basic1}\t${baseQ1}\t${seqQ1}" >> pipeline_qc.sum
+		echo -e "${sample2}\t${total2}\t${length2}\t${basic2}\t${baseQ2}\t${seqQ2}" >> pipeline_qc.sum
+	fi
+done < ${samplefile}

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+fastqc -o ${HOME}/Exercises/Pipeline/QC/ ${HOME}/Exercises/Pipeline/sequences/*fq.gz
+#runs fastqc on all files that end with fq.gz in the sequences directory,
+#and creates the corresponding output files in the QC directory
+#uses the default k-mer parameter of 7 since no alternative was specified in the question.
+
+#This will return fastqc.zip archives in addition to htmls, if you wish to unzip them, use:
+# unzip '${HOME}/Exercises/Pipeline/QC/*.zip' 
