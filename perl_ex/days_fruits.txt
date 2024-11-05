@@ -1,0 +1,7 @@
+Day	Fruit
+Monday	Apple
+Tuesday	Orange
+Tuesday	Lemon
+Friday	Bacon
+
+
